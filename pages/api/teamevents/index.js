@@ -2,8 +2,8 @@ import { prisma } from "../../../utils/prisma";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    const calendarEvents = await prisma.teamEvent.findMany();
-    res.status(200).json(calendarEvents);
+    const teamEvents = await prisma.teamEvent.findMany();
+    res.status(200).json(teamEvents);
   } else if (req.method === "POST") {
     const { title, start, end, allDay } = req.body;
     const result = await prisma.teamEvent.create({

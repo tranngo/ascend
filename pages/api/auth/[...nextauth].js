@@ -16,6 +16,7 @@ export default NextAuth({
     async session({ session, token, user }) {
       const teamsResponse = await axios.get("/teamenrollments/" + user.id);
       session.user.teams = teamsResponse.data;
+      session.user.id = user.id;
       return Promise.resolve(session);
     },
   },
