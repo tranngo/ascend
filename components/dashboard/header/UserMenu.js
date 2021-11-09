@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Transition from "../../utils/Transition";
 import Link from "next/link";
 import Image from "next/image";
 
-import UserAvatar from "./user-avatar-32.png";
-
 const UserMenu = () => {
+  const { data: session } = useSession();
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const trigger = useRef(null);
@@ -48,14 +48,14 @@ const UserMenu = () => {
       >
         <Image
           className="w-8 h-8 rounded-full"
-          src={UserAvatar}
+          src={session.user.image}
           width="32"
           height="32"
           alt="User"
         />
         <div className="flex items-center truncate">
           <span className="truncate ml-2 text-sm font-medium group-hover:text-gray-800">
-            DjangoAD
+            {session.user.name}
           </span>
           <svg
             className="w-3 h-3 flex-shrink-0 ml-1 mb-1 fill-current text-gray-400"
@@ -82,7 +82,7 @@ const UserMenu = () => {
           onBlur={() => setDropdownOpen(false)}
         >
           <div className="pt-0.5 pb-2 px-3 mb-1 border-b border-gray-200">
-            <div className="font-medium text-gray-800">Tran Ngo</div>
+            <div className="font-medium text-gray-800">{session.user.name}</div>
             <div className="text-xs text-gray-500 italic">USC Trojans</div>
           </div>
           <ul>

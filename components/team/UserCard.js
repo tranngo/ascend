@@ -1,8 +1,6 @@
 import Image from "next/image";
 import { RiPhoneFill, RiMailFill, RiDiscordFill } from "react-icons/ri";
 
-import UserAvatar from "../dashboard/header/user-avatar-32.png";
-
 const UserCard = ({ user }) => {
   return (
     <div className="flex flex-col bg-white shadow-lg rounded-sm border border-gray-200 p-5">
