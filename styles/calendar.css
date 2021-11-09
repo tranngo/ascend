@@ -1,0 +1,15 @@
+.rbc-time-header {
+  border-right: none !important;
+}
+
+.rbc-day-bg {
+  background-color: white;
+}
+
+.rbc-off-range-bg {
+  background-color: #f0f0f0;
+}
+
+.rbc-today {
+  background-color: #eaf6ff;
+}
