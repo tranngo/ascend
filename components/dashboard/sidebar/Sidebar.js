@@ -82,7 +82,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Links */}
         <div>
           <h3 className="text-xs uppercase text-gray-500 font-semibold pl-3">
-            Pages
+            Team
           </h3>
           <ul className="mt-3">
             <SidebarLink
@@ -96,12 +96,19 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               isActive={page === "calendar"}
             />
             <SidebarLink
-              href="/championpool"
+              href="/champions"
               label="Champion Pool"
-              isActive={page === "championpool"}
+              isActive={page === "champions"}
             />
             <SidebarLink href="/team" label="Team" isActive={page === "team"} />
           </ul>
+        </div>
+
+        {/* Links */}
+        <div>
+          <h3 className="text-xs uppercase text-gray-500 font-semibold pl-3">
+            Data Analysis
+          </h3>
         </div>
         {/* <Select defaultValue="jack" style={{ width: 120 }}>
           <Option value="jack">Jack</Option>
