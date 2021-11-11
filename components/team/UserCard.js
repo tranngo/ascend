@@ -3,11 +3,11 @@ import { RiPhoneFill, RiMailFill, RiDiscordFill } from "react-icons/ri";
 
 const UserCard = ({ user }) => {
   return (
-    <div className="flex flex-col bg-white shadow-lg rounded-sm border border-gray-200 p-5">
+    <div className="flex flex-col bg-white rounded-sm border border-gray-200 p-5">
       <div className="flex flex-col justify-center items-center">
         <Image
           className="w-8 h-8 rounded-full"
-          src={UserAvatar}
+          src={user.image}
           width="50"
           height="50"
           alt="User"
@@ -17,7 +17,7 @@ const UserCard = ({ user }) => {
           {user.role}
         </p>
       </div>
-      <div className="flex flex-row">
+      {/* <div className="flex flex-row">
         <RiPhoneFill size={"1.25em"} />
         <p className="text-xs ml-1">{user.discord}</p>
       </div>
@@ -28,7 +28,7 @@ const UserCard = ({ user }) => {
       <div className="flex flex-row">
         <RiDiscordFill size={"1.25em"} />
         <p className="text-xs ml-1">{user.discord}</p>
-      </div>
+      </div> */}
     </div>
   );
 };
