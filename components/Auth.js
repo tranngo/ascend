@@ -13,7 +13,7 @@ const Auth = ({ children }) => {
       router.push("/login");
     } else if (hasUser && session.user.teams.length === 0) {
       router.push("/welcome");
-    } else {
+    } else if (router.pathname === "/welcome") {
       router.push("/home");
     }
   }, [status, hasUser]);

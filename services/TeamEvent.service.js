@@ -1,12 +1,12 @@
 import axios from "../utils/api";
 
 class TeamEventService {
-  getAll() {
-    return axios.get("/teamevents");
-  }
-
   create(data) {
     return axios.post("/teamevents", data);
+  }
+
+  getAllByTeamId(teamId) {
+    return axios.get("/teamevents/" + teamId);
   }
 }
 

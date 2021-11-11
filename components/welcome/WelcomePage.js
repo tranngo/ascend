@@ -3,6 +3,7 @@ import { Form, Input, Button, Radio } from "antd";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import TeamService from "../../services/Team.service";
+import { refreshSession } from "../../utils/session";
 
 const WelcomePage = () => {
   const { data: session } = useSession();
@@ -24,11 +25,9 @@ const WelcomePage = () => {
 
       await TeamService.create(data);
 
-      // Refresh session (workaround)
-      const event = new Event("visibilitychange");
-      document.dispatchEvent(event);
-
       router.push("/home");
+
+      refreshSession();
     } else if (choice === "join") {
     }
   };

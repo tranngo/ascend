@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   PageHeader,
   Button,
@@ -12,32 +12,25 @@ import {
 import Dashboard from "../components/dashboard/Dashboard";
 import { Calendar as RBCCalendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
+import { useSession } from "next-auth/react";
 import CalendarToolbar from "../components/calendar/CalendarToolbar";
 import CalendarHeader from "../components/calendar/CalendarHeader";
 import TeamEventService from "../services/TeamEvent.service";
 
-const Events = [
-  {
-    title: "UCLA Scrim",
-    start: new Date(2021, 8, 22),
-    end: new Date(2021, 8, 22),
-    allDay: false,
-  },
-];
-
-export async function getServerSideProps() {
-  const res = await TeamEventService.getAll();
-  let calendarEvents = res.data;
-  return {
-    props: {
-      calendarEvents: calendarEvents,
-    },
-  };
-}
-
-const Calendar = ({ calendarEvents }) => {
+const Calendar = () => {
+  const { data: session } = useSession();
   const localizer = momentLocalizer(moment);
-  const [events, setEvents] = useState(calendarEvents);
+  const [events, setEvents] = useState([]);
+  const [selectedTeamId, setSelectedTeamId] = useState(session.selectedTeamId);
+
+  const getCalendarEvents = async () => {
+    const res = await TeamEventService.getAllByTeamId(selectedTeamId);
+    setEvents(res.data);
+  };
+
+  useEffect(() => {
+    getCalendarEvents();
+  }, []);
 
   // Create Calendar Form
   const [isCreateEventModalOpen, setIsCreateEventModalOpen] = useState(false);
@@ -50,23 +43,28 @@ const Calendar = ({ calendarEvents }) => {
     setIsCreateEventModalOpen(true);
   };
 
+  const closeModal = () => {
+    setEventTitle("");
+    setStartDate(null);
+    setEndDate(null);
+    setIsAllDay(false);
+    setIsCreateEventModalOpen(false);
+  };
+
   const handleCreate = async () => {
     const data = {
       title: eventTitle,
       start: startDate.toDate(),
       end: endDate.toDate(),
       allDay: isAllDay,
+      teamId: selectedTeamId,
     };
 
-    await TeamEventService.create(data);
-  };
-
-  const handleCancel = () => {
-    setEventTitle("");
-    setStartDate(null);
-    setEndDate(null);
-    setIsAllDay(false);
-    setIsCreateEventModalOpen(false);
+    const res = await TeamEventService.create(data);
+    if (res.status === 200) {
+      getCalendarEvents();
+      closeModal();
+    }
   };
 
   const calendarFormats = {
@@ -109,7 +107,7 @@ const Calendar = ({ calendarEvents }) => {
         visible={isCreateEventModalOpen}
         okText="Create"
         onOk={handleCreate}
-        onCancel={handleCancel}
+        onCancel={closeModal}
       >
         <Row className="mb-8">
           <Col span={24}>

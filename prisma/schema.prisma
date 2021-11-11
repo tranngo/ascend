@@ -59,9 +59,10 @@ model VerificationToken {
 }
 
 model Team {
-  id    Int              @id @default(autoincrement())
-  name  String
-  users TeamEnrollment[]
+  id     Int              @id @default(autoincrement())
+  name   String
+  users  TeamEnrollment[]
+  events TeamEvent[]
 }
 
 model TeamEnrollment {
@@ -80,4 +81,6 @@ model TeamEvent {
   start  DateTime
   end    DateTime
   allDay Boolean
+  team   Team     @relation(fields: [teamId], references: [id])
+  teamId Int
 }
