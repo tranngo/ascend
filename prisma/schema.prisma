@@ -48,6 +48,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   teams         TeamEnrollment[]
+  ChampionPool  ChampionPool[]
 }
 
 model VerificationToken {
@@ -83,4 +84,19 @@ model TeamEvent {
   allDay Boolean
   team   Team     @relation(fields: [teamId], references: [id])
   teamId Int
+}
+
+model ChampionPool {
+  id               Int                      @id @default(autoincrement())
+  championId       String
+  proficiencyLevel ChampionProficiencyLevel
+  user             User                     @relation(fields: [userId], references: [id])
+  userId           String
+}
+
+enum ChampionProficiencyLevel {
+  Beginner
+  Intermediate
+  Advanced
+  Mastery
 }

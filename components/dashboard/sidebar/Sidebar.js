@@ -75,7 +75,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </button>
           {/* Logo */}
           <Link href="/home" className="block">
-            <a className="text-2xl">🚀</a>
+            <a className="text-lg text-white font-semibold">Ascend</a>
           </Link>
         </div>
 
@@ -105,11 +105,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         </div>
 
         {/* Links */}
-        <div>
+        {/* <div>
           <h3 className="text-xs uppercase text-gray-500 font-semibold pl-3">
             Data Analysis
           </h3>
-        </div>
+        </div> */}
         {/* <Select defaultValue="jack" style={{ width: 120 }}>
           <Option value="jack">Jack</Option>
         </Select> */}

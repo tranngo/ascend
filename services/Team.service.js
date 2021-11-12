@@ -6,7 +6,7 @@ class TeamService {
   }
 
   getAllUsersByTeamId(teamId) {
-    return axios.get("teams/" + teamId + "/users");
+    return axios.get("/teams/" + teamId + "/users");
   }
 }
 

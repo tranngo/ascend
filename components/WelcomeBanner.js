@@ -70,7 +70,7 @@ const WelcomeBanner = () => {
           Good afternoon, Tran. 👋
         </h1>
         <p className="text-gray-600">
-          Here is what’s happening with your projects today:
+          Here is what you have coming up this week:
         </p>
       </div>
     </div>

@@ -3,13 +3,10 @@ import Dashboard from "../components/dashboard/Dashboard";
 import axios from "axios";
 import { Collapse } from "antd";
 import { PageHeader, Button, Select, Modal, Transfer } from "antd";
+import { useSession } from "next-auth/react";
 import ChampionPortrait from "../components/championpool/ChampionPortrait";
-
-var data = [
-  { id: 0, championId: "MonkeyKing", proficiencyId: 0, userId: 0 },
-  { id: 1, championId: "Aatrox", proficiencyId: 3, userId: 0 },
-  { id: 2, championId: "Sivir", proficiencyId: 1, userId: 0 },
-];
+import TeamService from "../services/Team.service";
+import ChampionPoolService from "../services/ChampionPool.service";
 
 const NoDataComponent = () => {
   return <p className="text-gray-400 text-xs">No data</p>;
@@ -19,42 +16,77 @@ const { Panel } = Collapse;
 const { Option } = Select;
 
 const ChampionPool = () => {
+  const { data: session } = useSession();
+  const [selectedTeamId, setSelectedTeamId] = useState(session.selectedTeamId);
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+
   const [champions, setChampions] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedProficiencyLevel, setSelectedProficiencyLevel] =
+    useState("Mastery");
   const [masteryProficiencyChampions, setMasteryProficiencyChampions] =
-    useState([{ id: 1, championId: "Aatrox", proficiencyId: 4, userId: 0 }]);
+    useState([]);
   const [advancedProficiencyChampions, setAdvancedProficiencyChampions] =
     useState([]);
   const [
     intermediateProficiencyChampions,
     setIntermediateProficiencyChampions,
-  ] = useState([{ id: 2, championId: "Sivir", proficiencyId: 2, userId: 0 }]);
+  ] = useState([]);
   const [beginnerProficiencyChampions, setBeginnerProficiencyChampions] =
-    useState([
-      { id: 0, championId: "MonkeyKing", proficiencyId: 1, userId: 0 },
-    ]);
+    useState([]);
 
-  const [selectedProficiency, setSelectedProficiency] = useState(4);
   const [sourceKeys, setSourceKeys] = useState([]);
   const [targetKeys, setTargetKeys] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState([]);
 
   // Consider fetching proficiency options from backend
   const proficiencyOptions = [
-    { label: "Mastery", value: 4 },
-    { label: "Advanced", value: 3 },
-    { label: "Intermediate", value: 2 },
-    { label: "Beginner", value: 1 },
+    "Mastery",
+    "Advanced",
+    "Intermediate",
+    "Beginner",
   ];
 
-  const proficiencyEnums = {
-    4: "Mastery",
-    3: "Advanced",
-    2: "Intermediate",
-    1: "Beginner",
+  const getUsers = async () => {
+    const res = await TeamService.getAllUsersByTeamId(selectedTeamId);
+    setUsers(res.data);
+
+    if (res.data.length > 0) {
+      setSelectedUser(
+        JSON.stringify((({ id, name }) => ({ id, name }))(res.data[0]))
+      );
+    }
   };
 
-  useEffect(() => {
+  const getSelectedUserChampionPool = async () => {
+    const res = await ChampionPoolService.getChampionPoolByUserId(
+      session.user.id
+    );
+
+    let tempBeginnerProficiencyChampions = [];
+    let tempIntermediateProficiencyChampions = [];
+    let tempAdvancedProficiencyChampions = [];
+    let tempMasteryProficiencyChampions = [];
+    res.data.forEach((element) => {
+      if (element.proficiencyLevel === "Beginner") {
+        tempBeginnerProficiencyChampions.push(element);
+      } else if (element.proficiencyLevel === "Intermediate") {
+        tempIntermediateProficiencyChampions.push(element);
+      } else if (element.proficiencyLevel === "Advanced") {
+        tempAdvancedProficiencyChampions.push(element);
+      } else if (element.proficiencyLevel === "Mastery") {
+        tempMasteryProficiencyChampions.push(element);
+      }
+    });
+
+    setBeginnerProficiencyChampions(tempBeginnerProficiencyChampions);
+    setIntermediateProficiencyChampions(tempIntermediateProficiencyChampions);
+    setAdvancedProficiencyChampions(tempAdvancedProficiencyChampions);
+    setMasteryProficiencyChampions(tempMasteryProficiencyChampions);
+  };
+
+  const getChampions = async () => {
     axios
       .get(
         "http://ddragon.leagueoflegends.com/cdn/11.20.1/data/en_US/champion.json"
@@ -62,44 +94,65 @@ const ChampionPool = () => {
       .then((res) => {
         if (res.data.data) {
           setChampions(res.data.data);
-
-          console.log(res.data.data);
-
-          var championData = [];
-          for (var champion in res.data.data) {
-            championData.push({
-              ...res.data.data[champion],
-              key: res.data.data[champion].id,
-            });
-          }
-
-          championData = championData
-            .filter((element) => {
-              return !data
-                .filter((a) => a.proficiencyId !== 3)
-                .map((a) => a.championId)
-                .includes(element.id);
-            })
-            .sort((a, b) => {
-              if (a.name < b.name) {
-                return -1;
-              }
-              if (a.name > b.name) {
-                return 1;
-              }
-              return 0;
-            });
-
-          setSourceKeys(championData);
-
-          const targetKeys = [];
-          for (var obj in data) {
-            targetKeys.push(data[obj].championId);
-          }
-          setTargetKeys(targetKeys);
         }
       });
+  };
+
+  useEffect(() => {
+    getUsers();
+    getSelectedUserChampionPool();
+    getChampions();
   }, []);
+
+  useEffect(() => {
+    setTransferComponentData();
+  }, [champions, selectedProficiencyLevel]);
+
+  const setTransferComponentData = () => {
+    var championData = [];
+    for (var champion in champions) {
+      championData.push({
+        ...champions[champion],
+        key: champions[champion].id,
+      });
+    }
+
+    let proficiencyChampions = [];
+    if (selectedProficiencyLevel === "Beginner") {
+      proficiencyChampions = beginnerProficiencyChampions;
+    } else if (selectedProficiencyLevel === "Intermediate") {
+      proficiencyChampions = intermediateProficiencyChampions;
+    } else if (selectedProficiencyLevel === "Advanced") {
+      proficiencyChampions = advancedProficiencyChampions;
+    } else if (selectedProficiencyLevel === "Mastery") {
+      proficiencyChampions = masteryProficiencyChampions;
+    }
+
+    championData = championData
+      .filter((element) => {
+        return !proficiencyChampions
+          .filter((a) => a.proficiencyLevel !== selectedProficiencyLevel)
+          .map((a) => a.championId)
+          .includes(element.id);
+      })
+      .sort((a, b) => {
+        if (a.name < b.name) {
+          return -1;
+        }
+        if (a.name > b.name) {
+          return 1;
+        }
+        return 0;
+      });
+
+    setSourceKeys(championData);
+
+    const targetKeys = [];
+    for (var obj in proficiencyChampions) {
+      targetKeys.push(proficiencyChampions[obj].championId);
+    }
+    setTargetKeys(targetKeys);
+  };
 
   const showModal = () => {
     setIsModalVisible(true);
@@ -107,17 +160,37 @@ const ChampionPool = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    setSelectedProficiencyLevel("Mastery");
   };
 
-  function handleProficiencyChange(value) {
-    setSelectedProficiency(value);
-  }
+  const handleSave = async () => {
+    for (let i = 0; i < targetKeys.length; i++) {
+      const data = {
+        championId: targetKeys[i],
+        proficiencyLevel: selectedProficiencyLevel,
+        userId: session.user.id,
+      };
+
+      const res = await ChampionPoolService.create(data);
+      console.log(res);
+    }
+  };
+
+  const handleProficiencyChange = (value) => {
+    setSelectedProficiencyLevel(value);
+  };
+
+  const handleUserChange = (value) => {
+    setSelectedUser(value);
+  };
 
   const onSelectChange = (sourceSelectedKeys, targetSelectedKeys) => {
+    // Handles selected champions in modal
     setSelectedKeys([...sourceSelectedKeys, ...targetSelectedKeys]);
   };
 
   const onTransferChange = (nextTargetKeys, direction, moveKeys) => {
+    for (let i = 0; i < nextTargetKeys.length; i++) {}
     setTargetKeys(nextTargetKeys);
   };
 
@@ -127,26 +200,23 @@ const ChampionPool = () => {
         title="Champion Pool"
         extra={[
           <Select
-            defaultValue="DjangoAD"
-            key="10"
+            value={selectedUser}
+            key="selectUser"
             style={{ width: 120 }}
-            // onChange={handleChange}
+            onChange={handleUserChange}
           >
-            <Option key="6" value="DjangoAD">
-              DjangoAD
-            </Option>
-            <Option key="2" value="Deamon">
-              Deamon
-            </Option>
-            <Option key="3" value="Meteoryte">
-              Meteoryte
-            </Option>
-            <Option key="4" value="Inferno">
-              USC Inferno
-            </Option>
-            <Option key="5" value="Lynne">
-              Lynne
-            </Option>
+            {users.map((user) => {
+              return (
+                <Option
+                  key={user.id}
+                  value={JSON.stringify(
+                    (({ id, name }) => ({ id, name }))(user)
+                  )}
+                >
+                  {user.name}
+                </Option>
+              );
+            })}
           </Select>,
           <Button key="1" type="primary" onClick={showModal}>
             Edit
@@ -220,16 +290,21 @@ const ChampionPool = () => {
         </Panel>
       </Collapse>
       <Modal
-        title="DjangoAD: Edit Champion Pool"
+        title={
+          selectedUser
+            ? JSON.parse(selectedUser).name + ": Edit Champion Pool"
+            : ""
+        }
         bodyStyle={{ paddingTop: 0 }}
         visible={isModalVisible}
-        // onOk={handleOk}
+        onOk={handleSave}
         onCancel={handleCancel}
         okText="Save"
       >
         <div className="flex justify-end my-5">
           <Select
-            defaultValue="Mastery"
+            value={selectedProficiencyLevel}
+            key="selectProficiencyLevel"
             style={{
               width: 120,
             }}
@@ -237,8 +312,8 @@ const ChampionPool = () => {
           >
             {proficiencyOptions.map((option) => {
               return (
-                <Option key={option.value} value={option.value}>
-                  {option.label}
+                <Option key={option} value={option}>
+                  {option}
                 </Option>
               );
             })}
@@ -246,7 +321,7 @@ const ChampionPool = () => {
         </div>
         <Transfer
           dataSource={sourceKeys}
-          titles={["Source", proficiencyEnums[selectedProficiency]]}
+          titles={["Source", selectedProficiencyLevel]}
           listStyle={{ width: "100%", height: "50vh" }}
           showSearch
           showSelectAll={false}

@@ -7,8 +7,8 @@ import TeamService from "../services/Team.service";
 
 const Team = () => {
   const { data: session } = useSession();
-  const [users, setUsers] = useState([]);
   const [selectedTeamId, setSelectedTeamId] = useState(session.selectedTeamId);
+  const [users, setUsers] = useState([]);
 
   const getUsers = async () => {
     const res = await TeamService.getAllUsersByTeamId(selectedTeamId);
